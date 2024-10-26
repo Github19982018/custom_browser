@@ -1,5 +1,6 @@
 import socket
 import ssl      
+import gzip
 import re
 class URL:
     redirect = 0
@@ -14,7 +15,7 @@ class URL:
             self.port = 80
         elif self.scheme == 'https':
             self.port = 443
-        elif self.scheme == 'file' and not url.startswith('/'):
+        elif self.scheme =='file' and not url.startswith('/'):
             url = '/' + url 
         if '/' not in url:
             url = url + '/'
@@ -30,7 +31,6 @@ class URL:
             with open(path,'r') as response:
                 content = response.read()
                 return content
-            
         s = socket.socket(
             family = socket.AF_INET, 
             type = socket.SOCK_STREAM,
@@ -45,19 +45,12 @@ class URL:
         request += 'Host: {}\r\n'.format(self.host)
         # request += 'Connection: close\r\n'
         request += 'User-Agent: test\r\n'
+        request += 'Accept-Encoding: gzip\r\n'
         request += '\r\n'
         s.send(request.encode('utf8'))
         response = s.makefile('r', encoding='utf8', newline='\r\n')
         statusline = response.readline()
         version, status, explanation = statusline.split(' ', 2)
-        response_headers = {}
-        while True:
-            line = response.readline()
-            if line == '\r\n': break 
-            header, value = line.split(':', 1)
-            response_headers[header.casefold()] = value.strip()
-        assert 'transfer-encoding' not in response_headers
-        assert 'content-encoding' not in response_headers
         if 300 <= int(status) < 400:
             if self.__class__.redirect > 3:
                 return 'too many redirects'
@@ -68,11 +61,28 @@ class URL:
             else:
                 self.__init__(url)
                 return self.request()
+        response_headers = {}
+        while True:
+            line = response.readline()
+            if line == '\r\n': break 
+            header, value = line.split(':', 1)
+            response_headers[header.casefold()] = value.strip()
+        if response_headers.get('transfer-encoding','') == 'chunked':
+            while True:
+                size = response.readline()
+                if int(size) == 0:
+                    break
+                content += response.readline(int(size))
+            return content
+        if response_headers.get('content-encoding','') == 'gzip':
+            response = s.makefile('rb', newline='\r\n')
+            content = gzip.decompress(response.read())
+            return content
         size = response_headers['content-length']
         content = response.read(int(size))
         __class__.socket = s
         return content
-    
+
     
 def show(body):
     in_tag = False
