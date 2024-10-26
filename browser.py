@@ -1,7 +1,11 @@
 import socket
-import ssl
+import ssl      
 class URL:
     def __init__(self, url):
+        self.view_source = False
+        if url.startswith('view-source:'):
+            self.view_source = True
+            url = url.removeprefix('view-source:')
         self.scheme, url = url.split('://',1)
         assert self.scheme in ['http', 'https','file']
         if self.scheme == 'http':
@@ -68,7 +72,10 @@ def show(body):
               
 def load(url):
     body = url.request()
-    show(body)
+    if url.view_source:
+        print(body)
+    else:
+        show(body)
 
 if __name__ == '__main__':
     import sys
