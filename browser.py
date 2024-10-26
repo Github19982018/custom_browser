@@ -104,7 +104,6 @@ def lex(body):
     return content
 
 def layout(text):
-    HSTEP, VSTEP = 13,18
     cursor_x, cursor_y = HSTEP, VSTEP
     display_list = []
     for c in text:
@@ -117,7 +116,9 @@ def layout(text):
 
               
 import tkinter
+HSTEP, VSTEP = 13,18
 WIDTH, HEIGHT = 800, 600
+SCROLL_STEP = 100
 
 class Browser:
     def __init__(self):
@@ -129,8 +130,16 @@ class Browser:
         )
         self.canvas.pack()
         self.scroll = 0
+        self.window.bind("<Down>", self.scrolldown)
+        self.window.bind("<MouseWheel>", self.scrolldown)
+        
+
+    def scrolldown(self, e):
+        self.scroll += SCROLL_STEP
+        self.draw()
         
     def draw(self):
+        self.canvas.delete('all')
         for x, y, c in self.display_list:
             self.canvas.create_text(x, y - self.scroll, text=c)
         
