@@ -28,6 +28,8 @@ class URL:
         s.connect((self.host, self.port))
         request = 'GET {} HTTP/1.0\r\n'.format(self.path)
         request += 'Host: {}\r\n'.format(self.host)
+        request += 'Connection: close\r\n'
+        request += 'User-Agent: test\r\n'
         request += '\r\n'
         s.send(request.encode('utf8'))
         response = s.makefile('r', encoding='utf8', newline='\r\n')
