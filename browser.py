@@ -1,13 +1,14 @@
 import socket
 import ssl      
+import re
 class URL:
     def __init__(self, url):
         self.view_source = False
         if url.startswith('view-source:'):
             self.view_source = True
             url = url.removeprefix('view-source:')
-        self.scheme, url = url.split('://',1)
-        assert self.scheme in ['http', 'https','file']
+        self.scheme, url = re.split(':/*',url, maxsplit=1)
+        assert self.scheme in ['http', 'https','file','data']
         if self.scheme == 'http':
             self.port = 80
         elif self.scheme == 'https':
@@ -16,7 +17,7 @@ class URL:
             url = '/' + url 
         if '/' not in url:
             url = url + '/'
-        self.host, url= url.split('/', 1)
+        self.host, url= re.split('/',url, 1)
         if ':' in self.host:
             self.host, port = self.host.split(':', 1)
             self.port =int(port)
@@ -62,13 +63,16 @@ class URL:
     
 def show(body):
     in_tag = False
+    content = ''
     for c in body:
         if c == '<':
             in_tag = True
         elif c == '>':
             in_tag = False
         elif not in_tag:
-            print(c, end='')
+            content += c
+        content = content.replace('&gt;','>').replace('&lt;','<')
+    print(content)
               
 def load(url):
     body = url.request()
