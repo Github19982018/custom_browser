@@ -36,13 +36,14 @@ class URL:
             type = socket.SOCK_STREAM,
             proto = socket.IPPROTO_TCP,
         )
+        
         if self.scheme == 'https':
             ctx = ssl.create_default_context()
             s =ctx.wrap_socket(s, server_hostname=self.host)
         s.connect((self.host, self.port))
         request = 'GET {} HTTP/1.0\r\n'.format(self.path)
         request += 'Host: {}\r\n'.format(self.host)
-        request += 'Connection: close\r\n'
+        # request += 'Connection: close\r\n'
         request += 'User-Agent: test\r\n'
         request += '\r\n'
         s.send(request.encode('utf8'))
@@ -57,7 +58,6 @@ class URL:
             response_headers[header.casefold()] = value.strip()
         assert 'transfer-encoding' not in response_headers
         assert 'content-encoding' not in response_headers
-        # print(status)
         if 300 <= int(status) < 400:
             if self.__class__.redirect > 3:
                 return 'too many redirects'
@@ -68,8 +68,9 @@ class URL:
             else:
                 self.__init__(url)
                 return self.request()
-        content = response.read()
-        s.close()
+        size = response_headers['content-length']
+        content = response.read(int(size))
+        __class__.socket = s
         return content
     
     
