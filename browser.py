@@ -2,12 +2,14 @@ import socket
 import ssl
 class URL:
     def __init__(self, url):
-        self.scheme, url = url.split("://",1)
-        assert self.scheme in ['http', 'https']
+        self.scheme, url = url.split('://',1)
+        assert self.scheme in ['http', 'https','file']
         if self.scheme == 'http':
             self.port = 80
         elif self.scheme == 'https':
             self.port = 443
+        elif self.scheme == 'file' and not url.startswith('/'):
+            url = '/' + url 
         if '/' not in url:
             url = url + '/'
         self.host, url= url.split('/', 1)
@@ -17,6 +19,12 @@ class URL:
         self.path = '/' + url
         
     def request(self):
+        if self.scheme == 'file':
+            path = self.path.strip('/')
+            with open(path,'r') as response:
+                content = response.read()
+                return content
+            
         s = socket.socket(
             family = socket.AF_INET, 
             type = socket.SOCK_STREAM,
@@ -57,7 +65,7 @@ def show(body):
             in_tag = False
         elif not in_tag:
             print(c, end='')
-            
+              
 def load(url):
     body = url.request()
     show(body)
