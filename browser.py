@@ -102,6 +102,19 @@ def lex(body):
             content += c
         content = content.replace('&gt;','>').replace('&lt;','<')
     return content
+
+def layout(text):
+    HSTEP, VSTEP = 13,18
+    cursor_x, cursor_y = HSTEP, VSTEP
+    display_list = []
+    for c in text:
+        display_list.append((cursor_x, cursor_y, c))
+        cursor_x += HSTEP
+        if cursor_x >= WIDTH - HSTEP:
+            cursor_y += VSTEP
+            cursor_x = HSTEP
+    return display_list
+
               
 import tkinter
 WIDTH, HEIGHT = 800, 600
@@ -115,6 +128,11 @@ class Browser:
             height=HEIGHT
         )
         self.canvas.pack()
+        self.scroll = 0
+        
+    def draw(self):
+        for x, y, c in self.display_list:
+            self.canvas.create_text(x, y - self.scroll, text=c)
         
     def load(self, url):
         body = url.request()
@@ -123,14 +141,9 @@ class Browser:
             text = body
         else:
             text = lex(body)
-        HSTEP, VSTEP = 13,18
-        cursor_x, cursor_y = HSTEP, VSTEP
-        for c in text:
-            self.canvas.create_text(cursor_x, cursor_y, text=c)
-            cursor_x += HSTEP
-            if cursor_x >= WIDTH - HSTEP:
-                cursor_y += VSTEP
-                cursor_x = HSTEP
+        self.display_list = layout(text)
+        self.draw()
+        
 
 if __name__ == '__main__':
     import sys
