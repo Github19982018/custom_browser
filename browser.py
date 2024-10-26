@@ -2,6 +2,7 @@ import socket
 import ssl      
 import re
 class URL:
+    redirect = 0
     def __init__(self, url):
         self.view_source = False
         if url.startswith('view-source:'):
@@ -56,6 +57,17 @@ class URL:
             response_headers[header.casefold()] = value.strip()
         assert 'transfer-encoding' not in response_headers
         assert 'content-encoding' not in response_headers
+        # print(status)
+        if 300 <= int(status) < 400:
+            if self.__class__.redirect > 3:
+                return 'too many redirects'
+            self.__class__.redirect += 1
+            url = response_headers['location']
+            if url.startswith('/'):
+                return self.request()
+            else:
+                self.__init__(url)
+                return self.request()
         content = response.read()
         s.close()
         return content
@@ -84,4 +96,5 @@ def load(url):
 if __name__ == '__main__':
     import sys
     load(URL(sys.argv[1]))
+    
         
