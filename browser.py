@@ -90,7 +90,7 @@ class URL:
             return content
     
     
-def show(body):
+def lex(body):
     in_tag = False
     content = ''
     for c in body:
@@ -101,7 +101,7 @@ def show(body):
         elif not in_tag:
             content += c
         content = content.replace('&gt;','>').replace('&lt;','<')
-    print(content)
+    return content
               
 import tkinter
 WIDTH, HEIGHT = 800, 600
