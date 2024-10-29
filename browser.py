@@ -146,14 +146,18 @@ class Browser:
        
     def scrollmouse(self, e):
         if e.delta < 0:
+            if self.scroll > len(self.display_list):
+                return
             self.scroll += SCROLL_STEP
-        elif self.scroll == 0:
-            return
         else:
+            if self.scroll == 0:
+                return
             self.scroll -= SCROLL_STEP
         self.draw()
         
     def scrolldown(self, e):
+        if self.scroll > len(self.display_list):
+            return
         self.scroll += SCROLL_STEP
         self.draw()
         
