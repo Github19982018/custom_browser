@@ -108,21 +108,22 @@ def lex(body):
     return content
 
 def layout(text):
+    font = tkinter.font.Font()
     cursor_x, cursor_y = HSTEP, VSTEP
     display_list = []
-    for c in text:
-        if c == '\n':
-            cursor_y += VSTEP
+    for word in text.split():
+        w = font.measure(word)
+        if cursor_x + w >= WIDTH - HSTEP:
+            cursor_y += font.metrics("linespace") * 1.25
             cursor_x = HSTEP
-        display_list.append((cursor_x, cursor_y, c))
-        cursor_x += HSTEP
-        if cursor_x >= WIDTH - HSTEP:
-            cursor_y += VSTEP
-            cursor_x = HSTEP
+        display_list.append((cursor_x, cursor_y, word))
+        cursor_x += w + font.measure(" ")
     return display_list
 
               
 import tkinter
+import tkinter.font
+
 HSTEP, VSTEP = 13,18
 WIDTH, HEIGHT = 800, 600
 SCROLL_STEP = 100
