@@ -135,11 +135,12 @@ class Browser:
             width=WIDTH,
             height=HEIGHT
         )
-        self.canvas.pack()
+        self.canvas.pack(expand=True,fill='both')
         self.scroll = 0
         self.window.bind("<Down>", self.scrolldown)
         self.window.bind("<Up>", self.scrollup)
         self.window.bind("<MouseWheel>", self.scrollmouse)
+        self.window.bind("<Configure>",self.resize)
         
        
     def scrollmouse(self, e):
@@ -161,6 +162,13 @@ class Browser:
         self.scroll -= SCROLL_STEP
         self.draw()
         
+    def resize(self, e):
+        global HEIGHT, WIDTH
+        HEIGHT = e.height
+        WIDTH = e.width
+        self.display_list = layout(self.text)
+        self.draw()
+        
     def draw(self):
         self.canvas.delete('all')
         for x, y, c in self.display_list:
@@ -170,12 +178,12 @@ class Browser:
         
     def load(self, url):
         body = url.request()
-        text = ''
+        self.text = ''
         if url.view_source:
-            text = body
+            self.text = body
         else:
-            text = lex(body)
-        self.display_list = layout(text)
+            self.text = lex(body)
+        self.display_list = layout(self.text)
         self.draw()
         
 
