@@ -141,9 +141,14 @@ class Browser:
         self.window.bind("<Up>", self.scrollup)
         self.window.bind("<MouseWheel>", self.scrollmouse)
         
-
+       
     def scrollmouse(self, e):
-        self.scroll += SCROLL_STEP
+        if e.delta < 0:
+            self.scroll += SCROLL_STEP
+        elif self.scroll == 0:
+            return
+        else:
+            self.scroll -= SCROLL_STEP
         self.draw()
         
     def scrolldown(self, e):
