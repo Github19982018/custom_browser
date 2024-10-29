@@ -4,6 +4,7 @@ import gzip
 import re
 class URL:
     redirect = 0
+    socket = {}
     def __init__(self, url):
         self.view_source = False
         if url.startswith('view-source:'):
@@ -37,16 +38,19 @@ class URL:
             self.type, content = content.split(',', 1)
             return content
         else:    
-            s = socket.socket(
-                family = socket.AF_INET, 
-                type = socket.SOCK_STREAM,
-                proto = socket.IPPROTO_TCP,
-            )
-            
-            if self.scheme == 'https':
-                ctx = ssl.create_default_context()
-                s =ctx.wrap_socket(s, server_hostname=self.host)
-            s.connect((self.host, self.port))
+            if self.host in self.__class__.socket:
+                s = self.__class__.socket[self.host]
+            else:
+                s = socket.socket(
+                    family = socket.AF_INET, 
+                    type = socket.SOCK_STREAM,
+                    proto = socket.IPPROTO_TCP,
+                )
+                
+                if self.scheme == 'https':
+                    ctx = ssl.create_default_context()
+                    s =ctx.wrap_socket(s, server_hostname=self.host)
+                s.connect((self.host, self.port))
             request = 'GET {} HTTP/1.0\r\n'.format(self.path)
             request += 'Host: {}\r\n'.format(self.host)
             # request += 'Connection: close\r\n'
@@ -86,7 +90,7 @@ class URL:
                 return content
             size = response_headers['content-length']
             content = response.read(int(size))
-            __class__.socket = s
+            __class__.socket[self.host] = s 
             return content
     
     
@@ -107,6 +111,9 @@ def layout(text):
     cursor_x, cursor_y = HSTEP, VSTEP
     display_list = []
     for c in text:
+        if c == '\n':
+            cursor_y += VSTEP
+            cursor_x = HSTEP
         display_list.append((cursor_x, cursor_y, c))
         cursor_x += HSTEP
         if cursor_x >= WIDTH - HSTEP:
