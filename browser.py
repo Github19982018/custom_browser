@@ -138,11 +138,22 @@ class Browser:
         self.canvas.pack()
         self.scroll = 0
         self.window.bind("<Down>", self.scrolldown)
-        self.window.bind("<MouseWheel>", self.scrolldown)
+        self.window.bind("<Up>", self.scrollup)
+        self.window.bind("<MouseWheel>", self.scrollmouse)
         
 
+    def scrollmouse(self, e):
+        self.scroll += SCROLL_STEP
+        self.draw()
+        
     def scrolldown(self, e):
         self.scroll += SCROLL_STEP
+        self.draw()
+        
+    def scrollup(self, e):
+        if self.scroll == 0:
+            return
+        self.scroll -= SCROLL_STEP
         self.draw()
         
     def draw(self):
